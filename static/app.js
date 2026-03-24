@@ -78,7 +78,7 @@ const cameraContexts = {
   operation: {
     previewId: "camera-preview",
     emptyId: "camera-empty",
-    idleText: "Waiting for scan. Open the camera or paste JSON below.",
+    idleText: "等待扫描。打开摄像头或在下方粘贴 JSON。"
     onDetect(rawValue) {
       const scanRaw = document.getElementById("scan-raw");
       if (scanRaw) {
@@ -90,19 +90,19 @@ const cameraContexts = {
         return submitOperation();
       }
 
-      setMessage(elements.operationMessage, "Scan captured. Review the payload before submitting.", false, true);
+      setMessage(elements.operationMessage, "扫描已捕获。提交前请检查数据。", false, true);
       return Promise.resolve();
     }
   },
   search: {
     previewId: "search-camera-preview",
     emptyId: "search-camera-empty",
-    idleText: "Open the camera to scan a SKU and load it automatically.",
+    idleText: "打开摄像头扫描 SKU，将自动加载产品。"
     async onDetect(rawValue) {
       elements.searchInput.value = rawValue;
       closeSearchScanModal();
       await loadProductDetail(rawValue);
-      setMessage(elements.searchMessage, `Scanned and loaded ${rawValue}.`, false, true);
+      setMessage(elements.searchMessage, `已扫描并加载 ${rawValue}`, false, true);
     }
   }
 };
@@ -183,18 +183,18 @@ async function checkHealth() {
 
   const now = new Date().toLocaleTimeString();
   elements.homeStatusDot.className = `status-dot ${state.apiOnline ? "online" : "offline"}`;
-  elements.homeStatusText.textContent = state.apiOnline ? "API Online" : "Offline";
+  elements.homeStatusText.textContent = state.apiOnline ? "API 在线" : "离线";
   elements.homeStatusDetail.textContent = state.apiOnline
-    ? `Health check passed at ${now}.`
-    : `Last check failed at ${now}.`;
+    ? `健康检查通过 ${now}`
+    : `上次检查失败 ${now}`;
 
   elements.settingsStatus.innerHTML = `
     <div>
       <div class="status-row">
         <span class="status-dot ${state.apiOnline ? "online" : "offline"}"></span>
-        <strong>${state.apiOnline ? "API Online" : "Offline"}</strong>
+        <strong>${state.apiOnline ? "API 在线" : "离线"}</strong>
       </div>
-      <p class="muted" style="margin-top:8px;">The app is using the current FastAPI backend without frontend mocks.</p>
+      <p class="muted" style="margin-top:8px;">应用正在使用 FastAPI 后端，未使用前端模拟数据。</p>
     </div>
   `;
 }
@@ -243,7 +243,7 @@ function resetImagePromptSelection() {
   elements.imagePromptFile.value = "";
   elements.imagePromptCamera.value = "";
   elements.imagePromptPreview.className = "image-preview empty-state";
-  elements.imagePromptPreview.textContent = "Choose an image or take a photo.";
+  elements.imagePromptPreview.textContent = "选择图片或拍照。";
 }
 
 function renderImagePromptPreview(file) {
@@ -264,7 +264,7 @@ function renderImagePromptPreview(file) {
 
 function openImagePromptModal(productId) {
   state.pendingImagePromptSku = productId;
-  elements.imagePromptDetail.textContent = `${productId} does not have a primary image yet. Add one now if you have it ready.`;
+  elements.imagePromptDetail.textContent = `${productId} 尚未设置主图。如有图片请立即添加。`;
   resetImagePromptSelection();
   setMessage(elements.imagePromptMessage, "");
   elements.imagePromptModal.classList.remove("hidden");
@@ -328,11 +328,11 @@ function renderLogs() {
 function renderSearchResult(product) {
   if (!product) {
     elements.searchResult.className = "empty-state";
-    elements.searchResult.textContent = "No product loaded yet.";
+    elements.searchResult.textContent = "尚未加载产品";
     return;
   }
 
-  const primaryLabel = product.primary_image ? product.primary_image.filename : "No primary image";
+  const primaryLabel = product.primary_image ? product.primary_image.filename : "无主图";
   const imageCount = Array.isArray(product.images) ? product.images.length : 0;
   elements.searchResult.className = "";
   elements.searchResult.innerHTML = `
@@ -340,18 +340,18 @@ function renderSearchResult(product) {
       <div class="result-hero">
         <div class="image-placeholder">${imageCount > 0 ? "IMG" : "SKU"}</div>
         <div>
-          <p class="section-label">Current Product</p>
+          <p class="section-label">当前产品</p>
           <h2>${product.product_id}</h2>
-          <span class="pill">Stock ${product.quantity}</span>
+          <span class="pill">库存 ${product.quantity}</span>
         </div>
       </div>
       <div class="meta-list">
-        <div><strong>Primary image:</strong> ${primaryLabel}</div>
-        <div><strong>Image count:</strong> ${imageCount}</div>
+        <div><strong>主图：</strong> ${primaryLabel}</div>
+        <div><strong>图片数量：</strong> ${imageCount}</div>
       </div>
       <div class="list-actions">
-        <button type="button" class="secondary-button" data-jump="operation">Adjust Stock</button>
-        <button type="button" class="secondary-button" data-jump="images">Manage Images</button>
+        <button type="button" class="secondary-button" data-jump="operation">调整库存</button>
+        <button type="button" class="secondary-button" data-jump="images">管理图片</button>
       </div>
     </article>
   `;
@@ -361,7 +361,7 @@ function renderSearchList(items) {
   state.searchItems = items;
   if (!items.length) {
     elements.searchList.className = "stack-list empty-state";
-    elements.searchList.textContent = "No matching products found.";
+    elements.searchList.textContent = "未找到匹配的产品";
     return;
   }
 
@@ -369,9 +369,9 @@ function renderSearchList(items) {
   elements.searchList.innerHTML = items.map((item) => `
     <article class="activity-item">
       <strong>${item.product_id}</strong>
-      <p class="muted small-text">Stock ${item.quantity}</p>
+      <p class="muted small-text">库存 ${item.quantity}</p>
       <div class="list-actions">
-        <button type="button" class="secondary-button" data-search-product="${item.product_id}">Open</button>
+        <button type="button" class="secondary-button" data-search-product="${item.product_id}">打开</button>
       </div>
     </article>
   `).join("");
@@ -390,17 +390,17 @@ async function searchItems(query = "") {
   const normalizedQuery = query.trim().toUpperCase();
   if (!normalizedQuery) {
     renderSearchResult(null);
-    setMessage(elements.searchMessage, `Loaded ${items.length} product(s).`, false, true);
+    setMessage(elements.searchMessage, `已加载 ${items.length} 个产品`, false, true);
     return items;
   }
 
   const exactMatch = items.find((item) => item.product_id === normalizedQuery);
   if (exactMatch) {
     await loadProductDetail(exactMatch.product_id, { silentMessage: true });
-    setMessage(elements.searchMessage, `Loaded ${exactMatch.product_id}.`, false, true);
+    setMessage(elements.searchMessage, `已加载 ${exactMatch.product_id}`, false, true);
   } else {
     renderSearchResult(null);
-    setMessage(elements.searchMessage, `Found ${items.length} match(es) for ${normalizedQuery}.`, false, true);
+    setMessage(elements.searchMessage, `找到 ${items.length} 个匹配 ${normalizedQuery} 的结果`, false, true);
   }
 
   return items;
@@ -409,7 +409,7 @@ async function searchItems(query = "") {
 async function loadProductDetail(productId, opts = {}) {
   const normalized = String(productId || "").trim();
   if (!normalized) {
-    throw new Error("Product ID is required.");
+    throw new Error("产品 ID 不能为空");
   }
 
   const product = await requestJson(`/products/${encodeURIComponent(normalized)}`);
@@ -417,7 +417,7 @@ async function loadProductDetail(productId, opts = {}) {
   rememberSku(normalized);
   renderSearchResult(product);
   if (!opts.silentMessage) {
-    setMessage(elements.searchMessage, `Loaded ${normalized}.`, false, true);
+    setMessage(elements.searchMessage, `已加载 ${normalized}`, false, true);
   }
   return product;
 }
@@ -434,7 +434,7 @@ async function maybePromptForPrimaryImage(productId) {
       openImagePromptModal(normalized);
     }
   } catch {
-    // Keep stock submission smooth even if the follow-up image check fails.
+    // 即使图片检查失败，也保持库存提交流畅
   }
 }
 
@@ -443,14 +443,14 @@ function renderOperationForm() {
   const autoSubmitChecked = getAutoSubmitEnabled() ? "checked" : "";
 
   if (state.operationMode === "add" || state.operationMode === "remove") {
-    const defaultActionLabel = state.operationMode === "add" ? "Stock In" : "Stock Out";
+    const defaultActionLabel = state.operationMode === "add" ? "入库" : "出库";
     elements.operationForm.innerHTML = `
       <div class="form-row">
-        <label class="field-label" for="operation-product-id">Product ID</label>
-        <input id="operation-product-id" type="text" value="${escapeHtml(rememberedSku)}" placeholder="Enter product ID">
+        <label class="field-label" for="operation-product-id">产品 ID</label>
+        <input id="operation-product-id" type="text" value="${escapeHtml(rememberedSku)}" placeholder="输入产品 ID">
       </div>
       <div class="form-row">
-        <label class="field-label" for="operation-quantity">Quantity</label>
+        <label class="field-label" for="operation-quantity">数量</label>
         <div class="quantity-stepper">
           <button type="button" data-quantity-step="-1">-</button>
           <input id="operation-quantity" type="number" min="1" value="1" inputmode="numeric">
@@ -459,37 +459,37 @@ function renderOperationForm() {
       </div>
       <div class="preview-card">
         <strong>${defaultActionLabel}</strong>
-        <p class="muted small-text" style="margin-top:8px;">Use this mode for direct stock changes through the tested backend routes.</p>
+        <p class="muted small-text" style="margin-top:8px;">使用此模式直接通过后端接口修改库存</p>
       </div>
     `;
   } else if (state.operationMode === "scan") {
     elements.operationForm.innerHTML = `
       <div class="camera-shell">
         <video id="camera-preview" autoplay playsinline muted hidden></video>
-        <div id="camera-empty">Waiting for scan. Open the camera or paste JSON below.</div>
+        <div id="camera-empty">等待扫描。打开摄像头或在下方粘贴 JSON</div>
       </div>
       <div class="camera-actions">
-        <button type="button" class="secondary-button" id="start-camera">Open Camera</button>
-        <button type="button" class="secondary-button" id="stop-camera">Stop Camera</button>
+        <button type="button" class="secondary-button" id="start-camera">打开摄像头</button>
+        <button type="button" class="secondary-button" id="stop-camera">停止摄像头</button>
       </div>
       <div class="form-row">
-        <label class="field-label" for="scan-raw">Scan JSON</label>
+        <label class="field-label" for="scan-raw">扫描 JSON</label>
         <textarea id="scan-raw" placeholder='{"action":"add","product_id":"SKU-001","quantity":1}'></textarea>
       </div>
       <label class="field-label" style="display:flex;align-items:center;gap:8px;">
         <input id="auto-submit-scan" type="checkbox" style="width:auto;" ${autoSubmitChecked}>
-        Auto submit valid scan results
+        自动提交有效的扫描结果
       </label>
     `;
   } else {
     elements.operationForm.innerHTML = `
       <div class="form-row">
-        <label class="field-label" for="batch-input">Batch input</label>
+        <label class="field-label" for="batch-input">批量输入</label>
         <textarea id="batch-input" placeholder='[{"action":"add","product_id":"SKU-100","quantity":2}]'></textarea>
       </div>
       <div class="preview-card">
-        <strong>Supported formats</strong>
-        <p class="muted small-text" style="margin-top:8px;">Paste a JSON array or one JSON object per line. Each item will be sent to /scan.</p>
+        <strong>支持的格式</strong>
+        <p class="muted small-text" style="margin-top:8px;">粘贴 JSON 数组，或每行一个 JSON 对象。每项将发送到 /scan 接口</p>
       </div>
     `;
   }
@@ -539,19 +539,19 @@ function updateOperationPreview() {
 function parseBatchInput(raw) {
   const trimmed = raw.trim();
   if (!trimmed) {
-    throw new Error("Batch input is required.");
+    throw new Error("批量输入不能为空");
   }
 
   try {
     const parsed = JSON.parse(trimmed);
     if (!Array.isArray(parsed)) {
-      throw new Error("Batch JSON must be an array.");
+      throw new Error("批量 JSON 必须是数组");
     }
     return parsed;
   } catch (arrayError) {
     const lines = trimmed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
     if (!lines.length) {
-      throw new Error("Batch input is empty.");
+      throw new Error("批量输入为空");
     }
     return lines.map((line) => JSON.parse(line));
   }
@@ -560,14 +560,14 @@ function parseBatchInput(raw) {
 function renderBatchResults() {
   if (!state.batchResults.length) {
     elements.batchResults.className = "stack-list empty-state";
-    elements.batchResults.textContent = "Batch results will appear here.";
+    elements.batchResults.textContent = "批量操作结果将显示在这里";
     return;
   }
 
   elements.batchResults.className = "stack-list";
   elements.batchResults.innerHTML = state.batchResults.map((item) => `
     <article class="batch-item">
-      <strong>${item.ok ? "Success" : "Failed"} | line ${item.line}</strong>
+      <strong>${item.ok ? "成功" : "失败"} | 第 ${item.line} 行</strong>
       <p class="muted small-text">${escapeHtml(item.summary)}</p>
     </article>
   `).join("");
@@ -578,7 +578,7 @@ async function submitOperation() {
 
   if (state.operationMode === "add" || state.operationMode === "remove") {
     if (!payload.product_id || !payload.quantity || payload.quantity < 1) {
-      throw new Error("Product ID and a positive quantity are required.");
+      throw new Error("产品 ID 和正数数量不能为空");
     }
 
     await requestJson(`/items/${state.operationMode}`, {
@@ -587,7 +587,7 @@ async function submitOperation() {
       body: JSON.stringify(payload)
     });
 
-    pushLog(state.operationMode === "add" ? "IN" : "OUT", payload.product_id, payload.quantity, true);
+    pushLog(state.operationMode === "add" ? "入库" : "出库", payload.product_id, payload.quantity, true);
     rememberSku(payload.product_id);
     await loadInventorySummary();
     try {
@@ -595,7 +595,7 @@ async function submitOperation() {
     } catch {
       state.currentProduct = null;
     }
-    setMessage(elements.operationMessage, "Operation completed successfully.", false, true);
+    setMessage(elements.operationMessage, "操作成功完成", false, true);
     if (state.operationMode === "add") {
       await maybePromptForPrimaryImage(payload.product_id);
     }
@@ -604,7 +604,7 @@ async function submitOperation() {
 
   if (state.operationMode === "scan") {
     if (payload.invalid) {
-      throw new Error("Scan JSON is invalid.");
+      throw new Error("扫描 JSON 格式无效");
     }
     await requestJson("/scan", {
       method: "POST",
@@ -612,10 +612,10 @@ async function submitOperation() {
       body: JSON.stringify(payload)
     });
 
-    pushLog("SCAN", payload.product_id, payload.quantity, true, payload.source || "scan");
+    pushLog("扫码", payload.product_id, payload.quantity, true, payload.source || "scan");
     rememberSku(payload.product_id);
     await loadInventorySummary();
-    setMessage(elements.operationMessage, "Scan submitted successfully.", false, true);
+    setMessage(elements.operationMessage, "扫描提交成功", false, true);
     return;
   }
 
@@ -640,14 +640,14 @@ async function submitOperation() {
       results.push({
         line: index + 1,
         ok: true,
-        summary: `${item.action} ${item.product_id} x ${item.quantity}`
+        summary: `${item.action === 'add' ? '入库' : '出库'} ${item.product_id} x ${item.quantity}`
       });
-      pushLog("BATCH", item.product_id, item.quantity, true, "batch");
+      pushLog("批量", item.product_id, item.quantity, true, "batch");
     } catch (error) {
       results.push({
         line: index + 1,
         ok: false,
-        summary: error.message || "Batch request failed."
+        summary: error.message || "批量请求失败"
       });
     }
   }
@@ -657,7 +657,7 @@ async function submitOperation() {
   await loadInventorySummary();
   setMessage(
     elements.operationMessage,
-    `Batch finished. ${results.filter((item) => item.ok).length}/${results.length} succeeded.`,
+    `批量完成。${results.filter((item) => item.ok).length}/${results.length} 成功`,
     false,
     true
   );
@@ -666,7 +666,7 @@ async function submitOperation() {
 function renderImagePreview() {
   if (!state.imagePreviewUrl) {
     elements.imagePreview.className = "image-preview empty-state";
-    elements.imagePreview.textContent = "Choose an image to preview before upload.";
+    elements.imagePreview.textContent = "选择图片预览后再上传";
     return;
   }
 
@@ -677,7 +677,7 @@ function renderImagePreview() {
 function renderImageList(images) {
   if (!images.length) {
     elements.imageList.className = "stack-list empty-state";
-    elements.imageList.textContent = "No images found for this product.";
+    elements.imageList.textContent = "该产品暂无图片";
     return;
   }
 
@@ -686,12 +686,12 @@ function renderImageList(images) {
     <article class="image-card">
       <strong>${escapeHtml(image.filename)}</strong>
       <p class="muted small-text">${escapeHtml(image.relative_path)}</p>
-      <p class="muted small-text">${image.size_bytes} bytes${image.is_primary ? " | Primary" : ""}</p>
+      <p class="muted small-text">${image.size_bytes} 字节${image.is_primary ? " | 主图" : ""}</p>
       <div class="list-actions">
         <button type="button" class="secondary-button" data-image-action="primary" data-image-id="${image.id}" ${image.is_primary ? "disabled" : ""}>
-          ${image.is_primary ? "Primary" : "Set Primary"}
+          ${image.is_primary ? "主图" : "设为主图"}
         </button>
-        <button type="button" class="danger-button" data-image-action="delete" data-image-id="${image.id}">Delete</button>
+        <button type="button" class="danger-button" data-image-action="delete" data-image-id="${image.id}">删除</button>
       </div>
     </article>
   `).join("");
@@ -700,24 +700,24 @@ function renderImageList(images) {
 async function loadImagesForProduct(productId) {
   const normalized = String(productId || "").trim();
   if (!normalized) {
-    throw new Error("Product ID is required.");
+    throw new Error("产品 ID 不能为空");
   }
 
   const images = await requestJson(`/images/${encodeURIComponent(normalized)}`);
   state.currentImages = images;
   rememberSku(normalized);
   renderImageList(images);
-  setMessage(elements.imageMessage, `Loaded ${images.length} image(s) for ${normalized}.`, false, true);
+  setMessage(elements.imageMessage, `已加载 ${images.length} 张图片`, false, true);
 }
 
 async function uploadImage() {
   const productId = elements.imageProductId.value.trim();
   const file = elements.imageFile.files[0];
   if (!productId) {
-    throw new Error("Product ID is required.");
+    throw new Error("产品 ID 不能为空");
   }
   if (!file) {
-    throw new Error("Please choose an image first.");
+    throw new Error("请先选择图片");
   }
 
   const formData = new FormData();
@@ -729,7 +729,7 @@ async function uploadImage() {
     body: formData
   });
 
-  pushLog("IMAGE", productId, 1, true, "upload");
+  pushLog("图片", productId, 1, true, "upload");
   elements.imageFile.value = "";
   if (state.imagePreviewUrl) {
     URL.revokeObjectURL(state.imagePreviewUrl);
@@ -743,10 +743,10 @@ async function uploadPromptImage() {
   const productId = state.pendingImagePromptSku;
   const file = elements.imagePromptFile.files[0] || elements.imagePromptCamera.files[0];
   if (!productId) {
-    throw new Error("No pending product for image upload.");
+    throw new Error("没有待上传图片的产品");
   }
   if (!file) {
-    throw new Error("Choose an image or take a photo first.");
+    throw new Error("请先选择图片或拍照");
   }
 
   const formData = new FormData();
@@ -758,7 +758,7 @@ async function uploadPromptImage() {
     body: formData
   });
 
-  pushLog("IMAGE", productId, 1, true, "post-stock-prompt");
+  pushLog("图片", productId, 1, true, "post-stock-prompt");
   state.imagePromptSkips = state.imagePromptSkips.filter((sku) => sku !== productId);
   saveImagePromptSkips();
   elements.imageProductId.value = productId;
@@ -787,7 +787,7 @@ async function deleteImage(imageId) {
 async function startCameraScan(contextName = "operation") {
   const context = cameraContexts[contextName];
   if (!context) {
-    throw new Error("Unknown camera context.");
+    throw new Error("未知的摄像头上下文");
   }
 
   const preview = document.getElementById(context.previewId);
@@ -798,11 +798,11 @@ async function startCameraScan(contextName = "operation") {
   }
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    throw new Error("Camera access is not available in this browser.");
+    throw new Error("此浏览器不支持摄像头访问");
   }
 
   if (!("BarcodeDetector" in window)) {
-    throw new Error("BarcodeDetector is not supported on this device.");
+    throw new Error("此设备不支持 BarcodeDetector");
   }
 
   stopCameraScan();
@@ -924,7 +924,7 @@ function bindEvents() {
 
   elements.searchScan.addEventListener("click", () => {
     openSearchScanModal();
-    setMessage(elements.searchMessage, "Open the camera and scan a SKU to load it automatically.");
+    setMessage(elements.searchMessage, "打开摄像头扫描 SKU，将自动加载产品");
   });
 
   elements.searchScanStart.addEventListener("click", async () => {
@@ -993,13 +993,13 @@ function bindEvents() {
 
     if (event.target.id === "stop-camera") {
       stopCameraScan();
-      setMessage(elements.operationMessage, "Camera stopped.", false, true);
+      setMessage(elements.operationMessage, "摄像头已停止", false, true);
     }
   });
 
   elements.operationSubmit.addEventListener("click", async () => {
     try {
-      setMessage(elements.operationMessage, "Submitting...");
+      setMessage(elements.operationMessage, "正在提交...");
       await submitOperation();
     } catch (error) {
       setMessage(elements.operationMessage, error.message, true);
@@ -1091,9 +1091,9 @@ function bindEvents() {
 
   elements.imageUpload.addEventListener("click", async () => {
     try {
-      setMessage(elements.imageMessage, "Uploading...");
+      setMessage(elements.imageMessage, "正在上传...");
       await uploadImage();
-      setMessage(elements.imageMessage, "Image uploaded successfully.", false, true);
+      setMessage(elements.imageMessage, "图片上传成功", false, true);
     } catch (error) {
       setMessage(elements.imageMessage, error.message, true);
     }
@@ -1109,10 +1109,10 @@ function bindEvents() {
     try {
       if (button.dataset.imageAction === "primary") {
         await setPrimaryImage(imageId);
-        setMessage(elements.imageMessage, "Primary image updated.", false, true);
+        setMessage(elements.imageMessage, "主图已更新", false, true);
       } else {
         await deleteImage(imageId);
-        setMessage(elements.imageMessage, "Image deleted.", false, true);
+        setMessage(elements.imageMessage, "图片已删除", false, true);
       }
     } catch (error) {
       setMessage(elements.imageMessage, error.message, true);

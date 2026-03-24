@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Mobile WMS Lite</title>
+  <title>仓库管理系统</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -11,29 +11,29 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">Warehouse</p>
-        <h1>Mobile WMS Lite</h1>
+        <h1>仓库管理系统</h1>
       </div>
-      <button id="refresh-status" class="icon-button" type="button" aria-label="Refresh status">Refresh</button>
+      <button id="refresh-status" class="icon-button" type="button" aria-label="刷新状态">刷新</button>
     </header>
 
     <main class="content">
       <section class="screen active" data-screen="home">
         <div class="status-card">
           <div>
-            <p class="section-label">Connection</p>
+            <p class="section-label">连接状态</p>
             <div class="status-row">
               <span id="home-status-dot" class="status-dot offline"></span>
-              <strong id="home-status-text">Checking API...</strong>
+              <strong id="home-status-text">正在检查 API...</strong>
             </div>
-            <p id="home-status-detail" class="muted">Waiting for the first health check.</p>
+            <p id="home-status-detail" class="muted">等待首次健康检查</p>
           </div>
           <div class="stats-grid">
             <button id="home-open-search" class="stat-tile stat-button" type="button">
-              <span class="stat-label">SKUs</span>
+              <span class="stat-label">产品数</span>
               <strong id="stat-skus">0</strong>
             </button>
             <article class="stat-tile">
-              <span class="stat-label">Units</span>
+              <span class="stat-label">总库存</span>
               <strong id="stat-units">0</strong>
             </article>
           </div>
@@ -42,27 +42,27 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Quick Actions</p>
-              <h2>Start with one tap</h2>
+              <p class="section-label">快捷操作</p>
+              <h2>一键开始</h2>
             </div>
           </div>
           <div class="shortcut-grid">
-            <button class="shortcut-card" type="button" data-shortcut="search">Search Product</button>
-            <button class="shortcut-card" type="button" data-shortcut="add">Stock In</button>
-            <button class="shortcut-card" type="button" data-shortcut="remove">Stock Out</button>
-            <button class="shortcut-card" type="button" data-shortcut="scan">Open Scan</button>
-            <button class="shortcut-card" type="button" data-shortcut="batch">Run Batch</button>
+            <button class="shortcut-card" type="button" data-shortcut="search">搜索产品</button>
+            <button class="shortcut-card" type="button" data-shortcut="add">入库</button>
+            <button class="shortcut-card" type="button" data-shortcut="remove">出库</button>
+            <button class="shortcut-card" type="button" data-shortcut="scan">扫码</button>
+            <button class="shortcut-card" type="button" data-shortcut="batch">批量操作</button>
           </div>
         </section>
 
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Recent Activity</p>
-              <h2>Last 5 actions</h2>
+              <p class="section-label">最近活动</p>
+              <h2>最近 5 次操作</h2>
             </div>
           </div>
-          <div id="home-activity-list" class="stack-list empty-state">No recent actions yet.</div>
+          <div id="home-activity-list" class="stack-list empty-state">暂无操作记录</div>
         </section>
       </section>
 
@@ -70,16 +70,16 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Product Search</p>
-              <h2>Load by SKU</h2>
+              <p class="section-label">产品搜索</p>
+              <h2>按 SKU 查找</h2>
             </div>
           </div>
           <div class="form-row">
-            <label class="field-label" for="search-product-id">SKU or ID</label>
+            <label class="field-label" for="search-product-id">SKU 或产品 ID</label>
             <div class="field-inline">
-              <input id="search-product-id" type="text" placeholder="Enter SKU or ID">
-              <button id="search-scan" type="button" class="secondary-button">Scan</button>
-              <button id="search-load" type="button">Load</button>
+              <input id="search-product-id" type="text" placeholder="输入 SKU 或产品 ID">
+              <button id="search-scan" type="button" class="secondary-button">扫码</button>
+              <button id="search-load" type="button">加载</button>
             </div>
           </div>
           <div id="search-message" class="message"></div>
@@ -88,21 +88,21 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Matches</p>
-              <h2>SKU list</h2>
+              <p class="section-label">匹配结果</p>
+              <h2>产品列表</h2>
             </div>
           </div>
-          <div id="search-list" class="stack-list empty-state">Tap Load to search products.</div>
+          <div id="search-list" class="stack-list empty-state">点击加载按钮搜索产品</div>
         </section>
 
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Result</p>
-              <h2>Product detail</h2>
+              <p class="section-label">结果</p>
+              <h2>产品详情</h2>
             </div>
           </div>
-          <div id="search-result" class="empty-state">No product loaded yet.</div>
+          <div id="search-result" class="empty-state">尚未加载产品</div>
         </section>
       </section>
 
@@ -110,16 +110,16 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Inventory Operation</p>
-              <h2>Confirm before submit</h2>
+              <p class="section-label">库存操作</p>
+              <h2>提交前确认</h2>
             </div>
           </div>
 
-          <div class="mode-switch" role="tablist" aria-label="Operation mode">
-            <button class="mode-button active" type="button" data-mode="add">Stock In</button>
-            <button class="mode-button" type="button" data-mode="remove">Stock Out</button>
-            <button class="mode-button" type="button" data-mode="scan">Scan Mode</button>
-            <button class="mode-button" type="button" data-mode="batch">Batch JSON</button>
+          <div class="mode-switch" role="tablist" aria-label="操作模式">
+            <button class="mode-button active" type="button" data-mode="add">入库</button>
+            <button class="mode-button" type="button" data-mode="remove">出库</button>
+            <button class="mode-button" type="button" data-mode="scan">扫码模式</button>
+            <button class="mode-button" type="button" data-mode="batch">批量 JSON</button>
           </div>
 
           <div id="operation-form" class="operation-form"></div>
@@ -129,22 +129,22 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Preview</p>
-              <h2>Ready to send</h2>
+              <p class="section-label">预览</p>
+              <h2>待发送数据</h2>
             </div>
           </div>
           <div id="operation-preview" class="preview-card"></div>
-          <button id="operation-submit" class="primary-action" type="button">Confirm Submit</button>
+          <button id="operation-submit" class="primary-action" type="button">确认提交</button>
         </section>
 
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Batch Log</p>
-              <h2>Execution result</h2>
+              <p class="section-label">批量日志</p>
+              <h2>执行结果</h2>
             </div>
           </div>
-          <div id="batch-results" class="stack-list empty-state">Batch results will appear here.</div>
+          <div id="batch-results" class="stack-list empty-state">批量操作结果将显示在这里</div>
         </section>
       </section>
 
@@ -152,37 +152,37 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Image Management</p>
-              <h2>Upload for one SKU</h2>
+              <p class="section-label">图片管理</p>
+              <h2>为 SKU 上传图片</h2>
             </div>
           </div>
 
           <div class="form-row">
-            <label class="field-label" for="image-product-id">Product ID</label>
+            <label class="field-label" for="image-product-id">产品 ID</label>
             <div class="field-inline">
-              <input id="image-product-id" type="text" placeholder="Enter product ID">
-              <button id="image-load" type="button" class="secondary-button">Load</button>
+              <input id="image-product-id" type="text" placeholder="输入产品 ID">
+              <button id="image-load" type="button" class="secondary-button">加载</button>
             </div>
           </div>
 
           <div class="form-row">
-            <label class="field-label" for="image-file">Select image</label>
+            <label class="field-label" for="image-file">选择图片</label>
             <input id="image-file" type="file" accept=".jpg,.jpeg,.png,.webp">
           </div>
 
-          <div id="image-preview" class="image-preview empty-state">Choose an image to preview before upload.</div>
-          <button id="image-upload" class="primary-action" type="button">Upload Image</button>
+          <div id="image-preview" class="image-preview empty-state">选择图片预览后再上传</div>
+          <button id="image-upload" class="primary-action" type="button">上传图片</button>
           <div id="image-message" class="message"></div>
         </section>
 
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Current Images</p>
-              <h2>Image list</h2>
+              <p class="section-label">当前图片</p>
+              <h2>图片列表</h2>
             </div>
           </div>
-          <div id="image-list" class="stack-list empty-state">Load a product to manage images.</div>
+          <div id="image-list" class="stack-list empty-state">加载产品以管理图片</div>
         </section>
       </section>
 
@@ -190,36 +190,36 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">API Status</p>
-              <h2>Connectivity</h2>
+              <p class="section-label">API 状态</p>
+              <h2>连接状态</h2>
             </div>
           </div>
           <div id="settings-status" class="status-card compact"></div>
-          <button id="settings-check" type="button" class="secondary-button">Run Health Check</button>
+          <button id="settings-check" type="button" class="secondary-button">运行健康检查</button>
         </section>
 
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">Data</p>
-              <h2>Local cache</h2>
+              <p class="section-label">数据</p>
+              <h2>本地缓存</h2>
             </div>
           </div>
-          <button id="clear-history" type="button" class="danger-button">Clear Local History</button>
-          <p class="muted small-text">This clears recent actions, remembered SKU, and local UI preferences.</p>
+          <button id="clear-history" type="button" class="danger-button">清除本地记录</button>
+          <p class="muted small-text">这将清除最近操作、记住的 SKU 和本地 UI 偏好设置</p>
         </section>
 
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="section-label">About</p>
-              <h2>Version</h2>
+              <p class="section-label">关于</p>
+              <h2>版本信息</h2>
             </div>
           </div>
           <div class="about-card">
-            <strong>Mobile WMS Lite</strong>
-            <p class="muted">Mobile-first web console for the current FastAPI warehouse backend.</p>
-            <p class="muted small-text">Frontend build: March 2026</p>
+            <strong>仓库管理系统</strong>
+            <p class="muted">基于 FastAPI 的仓库管理移动端 Web 控制台</p>
+            <p class="muted small-text">前端版本：2026年3月</p>
           </div>
         </section>
       </section>
@@ -229,17 +229,17 @@
       <div class="scan-modal-card">
         <div class="panel-head">
           <div>
-            <p class="section-label">Search Scan</p>
-            <h2>Point at a barcode</h2>
+            <p class="section-label">搜索扫码</p>
+            <h2>对准条形码</h2>
           </div>
         </div>
         <div class="camera-shell">
           <video id="search-camera-preview" autoplay playsinline muted hidden></video>
-          <div id="search-camera-empty">Open the camera to scan a SKU and load it automatically.</div>
+          <div id="search-camera-empty">打开摄像头扫描 SKU，将自动加载产品</div>
         </div>
         <div class="camera-actions">
-          <button id="search-scan-start" type="button">Open Camera</button>
-          <button id="search-scan-close" type="button" class="secondary-button">Close</button>
+          <button id="search-scan-start" type="button">打开摄像头</button>
+          <button id="search-scan-close" type="button" class="secondary-button">关闭</button>
         </div>
       </div>
     </div>
@@ -248,32 +248,32 @@
       <div class="scan-modal-card">
         <div class="panel-head">
           <div>
-            <p class="section-label">Add Primary Image</p>
-            <h2>No primary image yet</h2>
+            <p class="section-label">添加主图</p>
+            <h2>暂无主图</h2>
           </div>
         </div>
-        <p class="muted" id="image-prompt-detail">This SKU does not have a primary image yet.</p>
-        <div id="image-prompt-preview" class="image-preview empty-state">Choose an image or take a photo.</div>
+        <p class="muted" id="image-prompt-detail">此 SKU 尚未设置主图</p>
+        <div id="image-prompt-preview" class="image-preview empty-state">选择图片或拍照</div>
         <input id="image-prompt-file" type="file" accept=".jpg,.jpeg,.png,.webp,image/*" hidden>
         <input id="image-prompt-camera" type="file" accept="image/*" capture="environment" hidden>
         <div class="camera-actions">
-          <button id="image-prompt-choose" type="button" class="secondary-button">Choose Image</button>
-          <button id="image-prompt-capture" type="button">Take Photo</button>
+          <button id="image-prompt-choose" type="button" class="secondary-button">选择图片</button>
+          <button id="image-prompt-capture" type="button">拍照</button>
         </div>
         <div class="camera-actions">
-          <button id="image-prompt-upload" type="button">Upload</button>
-          <button id="image-prompt-skip" type="button" class="secondary-button">Skip</button>
+          <button id="image-prompt-upload" type="button">上传</button>
+          <button id="image-prompt-skip" type="button" class="secondary-button">跳过</button>
         </div>
         <div id="image-prompt-message" class="message"></div>
       </div>
     </div>
 
-    <nav class="bottom-nav" aria-label="Primary navigation">
-      <button class="nav-item active" type="button" data-target="home">Home</button>
-      <button class="nav-item" type="button" data-target="search">Search</button>
-      <button class="nav-item" type="button" data-target="operation">Operate</button>
-      <button class="nav-item" type="button" data-target="images">Images</button>
-      <button class="nav-item" type="button" data-target="settings">Settings</button>
+    <nav class="bottom-nav" aria-label="主导航">
+      <button class="nav-item active" type="button" data-target="home">首页</button>
+      <button class="nav-item" type="button" data-target="search">搜索</button>
+      <button class="nav-item" type="button" data-target="operation">操作</button>
+      <button class="nav-item" type="button" data-target="images">图片</button>
+      <button class="nav-item" type="button" data-target="settings">设置</button>
     </nav>
   </div>
 
