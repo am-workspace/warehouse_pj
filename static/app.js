@@ -78,7 +78,7 @@ const cameraContexts = {
   operation: {
     previewId: "camera-preview",
     emptyId: "camera-empty",
-    idleText: "等待扫描。打开摄像头或在下方粘贴 JSON。"
+    idleText: "等待扫描。打开摄像头或在下方粘贴 JSON。",
     onDetect(rawValue) {
       const scanRaw = document.getElementById("scan-raw");
       if (scanRaw) {
@@ -97,7 +97,7 @@ const cameraContexts = {
   search: {
     previewId: "search-camera-preview",
     emptyId: "search-camera-empty",
-    idleText: "打开摄像头扫描 SKU，将自动加载产品。"
+    idleText: "打开摄像头扫描 SKU，将自动加载产品。",
     async onDetect(rawValue) {
       elements.searchInput.value = rawValue;
       closeSearchScanModal();
