@@ -74,6 +74,10 @@ const elements = {
   clearHistory: document.getElementById("clear-history")
 };
 
+// 扫码去重重置定时器
+let scanResetTimerId = null;
+const SCAN_DEDUPLICATE_TIMEOUT = 3000; // 3秒后允许扫描相同条码
+
 const cameraContexts = {
   operation: {
     previewId: "camera-preview",
@@ -259,7 +263,7 @@ function renderImagePromptPreview(file) {
 
   state.imagePromptPreviewUrl = URL.createObjectURL(file);
   elements.imagePromptPreview.className = "image-preview";
-  elements.imagePromptPreview.innerHTML = `<img class="local-image-preview" src="${state.imagePromptPreviewUrl}" alt="Primary image preview">`;
+  elements.imagePromptPreview.innerHTML = `<img class="local-image-preview" src="${state.imagePromptPreviewUrl}" alt="主图预览">`;
 }
 
 function openImagePromptModal(productId) {
@@ -308,18 +312,18 @@ function renderLogs() {
   const recent = state.logs.slice(0, 5);
   if (!recent.length) {
     elements.homeActivityList.className = "stack-list empty-state";
-    elements.homeActivityList.textContent = "No recent actions yet.";
+    elements.homeActivityList.textContent = "暂无操作记录";
     return;
   }
 
   elements.homeActivityList.className = "stack-list";
   elements.homeActivityList.innerHTML = recent.map((item) => {
     const time = new Date(item.timestamp).toLocaleString();
-    const status = item.success ? "Success" : "Failed";
+    const status = item.success ? "成功" : "失败";
     return `
       <article class="activity-item">
-        <strong>${item.type} | ${item.product_id || "N/A"} x ${item.quantity || 0}</strong>
-        <p class="muted small-text">${time} | ${status} | ${item.source}</p>
+        <strong>${escapeHtml(item.type)} | ${escapeHtml(item.product_id || "N/A")} x ${item.quantity || 0}</strong>
+        <p class="muted small-text">${time} | ${status} | ${escapeHtml(item.source)}</p>
       </article>
     `;
   }).join("");
@@ -671,7 +675,7 @@ function renderImagePreview() {
   }
 
   elements.imagePreview.className = "image-preview";
-  elements.imagePreview.innerHTML = `<img class="local-image-preview" src="${state.imagePreviewUrl}" alt="Selected preview">`;
+  elements.imagePreview.innerHTML = `<img class="local-image-preview" src="${state.imagePreviewUrl}" alt="图片预览">`;
 }
 
 function renderImageList(images) {
@@ -838,6 +842,16 @@ async function startCameraScan(contextName = "operation") {
     }
 
     state.lastScanText = rawValue;
+
+    // 设置定时器，3秒后重置 lastScanText，允许再次扫描相同条码
+    if (scanResetTimerId) {
+      window.clearTimeout(scanResetTimerId);
+    }
+    scanResetTimerId = window.setTimeout(() => {
+      state.lastScanText = "";
+      scanResetTimerId = null;
+    }, SCAN_DEDUPLICATE_TIMEOUT);
+
     await context.onDetect(rawValue);
   }, 700);
 }
@@ -1072,9 +1086,9 @@ function bindEvents() {
 
   elements.imagePromptUpload.addEventListener("click", async () => {
     try {
-      setMessage(elements.imagePromptMessage, "Uploading...");
+      setMessage(elements.imagePromptMessage, "正在上传...");
       await uploadPromptImage();
-      setMessage(elements.imageMessage, "Primary image uploaded.", false, true);
+      setMessage(elements.imageMessage, "主图上传成功", false, true);
     } catch (error) {
       setMessage(elements.imagePromptMessage, error.message, true);
     }
