@@ -1,203 +1,213 @@
-# Warehouse Tool
+# 仓库管理系统 (Warehouse Tool)
 
-A small warehouse management practice project built with a low-uncertainty, layered approach.
+一个基于 FastAPI 的轻量级仓库管理系统，支持库存管理、产品图片管理和扫码操作。采用分层架构设计，前后端分离，提供 Web UI 和 RESTful API。
 
-The current goal is not to build everything at once. The goal is to keep each layer independently testable and easy to extend:
+## 功能特性
 
-- core inventory rules first
-- SQLite persistence next
-- FastAPI API layer after that
-- frontend and AI-related features only on top of stable backend behavior
+### 核心功能
 
-## Current Milestone
+- **库存管理**：入库、出库、库存查询
+- **产品管理**：产品详情查看（库存 + 图片聚合）
+- **图片管理**：上传、删除、设置主图
+- **扫码操作**：支持 JSON 格式的扫码入库/出库
+- **批量处理**：支持批量扫码操作
+- **移动端适配**：响应式 Web UI，支持手机浏览器
 
-This project is now at a presentable prototype milestone.
+### 界面预览
 
-Presentation helpers:
+系统提供移动端友好的 Web 界面，包含以下页面：
 
-- [SHOWCASE.md](/C:/Users/amwor/Documents/codex_pj/warehouse_pj/SHOWCASE.md)
-- [DEMO_SCRIPT.md](/C:/Users/amwor/Documents/codex_pj/warehouse_pj/DEMO_SCRIPT.md)
+- **首页**：状态概览、快捷操作、最近活动
+- **搜索**：产品搜索、扫码加载产品
+- **操作**：入库/出库/扫码/批量 四种操作模式
+- **图片**：产品图片上传和管理
+- **设置**：系统状态、本地缓存管理
 
-Working today:
+## 技术栈
 
-- add stock
-- remove stock
-- list stock
-- scan JSON submission
-- upload product images
-- set a primary image
-- delete product images
-- aggregate product detail view
-- lightweight web UI
-- batch scan runner in the UI
+| 层级 | 技术 |
+|------|------|
+| 后端框架 | FastAPI |
+| 数据库 | SQLite |
+| 文件存储 | 本地文件系统 |
+| 前端 | 原生 HTML + CSS + JavaScript |
+| 扫码 | Web Barcode Detector API |
 
-## Architecture
+## 项目结构
 
-The code is intentionally split into small layers.
+```
+warehouse_pj/
+├── app.py                  # FastAPI 主应用
+├── inventory.py            # 库存核心逻辑（内存实现）
+├── sqlite_inventory.py     # 库存 SQLite 持久化
+├── image_store.py          # 图片文件存储
+├── sqlite_image_store.py   # 图片元数据管理
+├── product_ids.py          # 产品 ID 规范化
+├── static/                 # 前端静态文件
+│   ├── index.html          # 主页面
+│   ├── app.js              # 前端逻辑
+│   └── styles.css          # 样式
+├── tests/                  # 测试目录
+│   ├── test_app.py
+│   ├── test_inventory.py
+│   └── test_sqlite_inventory.py
+├── requirements.txt        # 依赖
+└── warehouse.db            # SQLite 数据库
+```
 
-- [inventory.py](/C:/Users/amwor/Documents/codex_pj/warehouse_pj/inventory.py): in-memory inventory core
-- [sqlite_inventory.py](/C:/Users/amwor/Documents/codex_pj/warehouse_pj/sqlite_inventory.py): SQLite-backed inventory implementation
-- [image_store.py](/C:/Users/amwor/Documents/codex_pj/warehouse_pj/image_store.py): filesystem image storage
-- [sqlite_image_store.py](/C:/Users/amwor/Documents/codex_pj/warehouse_pj/sqlite_image_store.py): SQLite image metadata storage
-- [app.py](/C:/Users/amwor/Documents/codex_pj/warehouse_pj/app.py): FastAPI routes and aggregate endpoints
-- [static/index.html](/C:/Users/amwor/Documents/codex_pj/warehouse_pj/static/index.html): frontend console
+## API 接口
 
-Design principles used here:
+### 健康检查
 
-- AI handles perception later, not business decisions
-- each step should be testable on its own
-- avoid cross-module mega-tasks
-- keep API routes thin and push behavior into reusable logic
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/health` | GET | 服务健康状态 |
 
-## Project Features
+### 库存管理
 
-### Inventory
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/items` | GET | 获取库存列表，支持 `?query=` 搜索 |
+| `/items/{product_id}` | GET | 获取单个产品库存 |
+| `/items/add` | POST | 入库 |
+| `/items/remove` | POST | 出库 |
 
-- `POST /items/add`
-- `POST /items/remove`
-- `GET /items`
-- `GET /items/{product_id}`
+**入库/出库请求体：**
+```json
+{
+  "product_id": "SKU-001",
+  "quantity": 10
+}
+```
 
-Behavior:
+### 产品详情
 
-- adding the same `product_id` accumulates quantity
-- removing stock validates product existence
-- removing stock validates sufficient quantity
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/products/{product_id}` | GET | 获取产品详情（库存 + 图片） |
 
-### Product Detail
+### 扫码操作
 
-- `GET /products/{product_id}`
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/scan` | POST | 扫码入库/出库 |
 
-Returns:
+**请求体：**
+```json
+{
+  "action": "add",
+  "product_id": "SKU-001",
+  "quantity": 5,
+  "source": "scanner",
+  "raw_code": "{\"product_id\":\"SKU-001\",\"quantity\":5}"
+}
+```
 
-- inventory quantity
-- primary image
-- image list
+### 图片管理
 
-### Scan Input
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/images` | POST | 上传图片（form-data: product_id, image） |
+| `/images/{product_id}` | GET | 获取产品图片列表 |
+| `/images/{product_id}/primary` | POST | 设置主图（请求体: `{ "image_id": 1 }`） |
+| `/images/{product_id}/{image_id}` | DELETE | 删除图片 |
 
-- `POST /scan`
+## 快速开始
 
-Accepts explicit action-based scan payloads such as:
+### 环境要求
+
+- Python 3.10+
+
+### 安装依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+### 运行测试
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+**当前测试覆盖：33 个测试用例**
+
+### 启动服务
+
+```bash
+python -m uvicorn app:app --reload
+```
+
+或指定端口：
+
+```bash
+python -m uvicorn app:app --host 0.0.0.0 --port 8001
+```
+
+### 访问应用
+
+- Web 界面：http://localhost:8001/
+- API 文档：http://localhost:8001/docs
+
+## 使用指南
+
+### 基本流程
+
+1. **添加入库**：在"操作"页面选择"入库"模式，输入产品 ID 和数量
+2. **查看库存**：在"搜索"页面查看产品列表和库存
+3. **上传图片**：在"图片"页面上传产品图片
+4. **扫码操作**：在"操作"页面选择"扫码"模式，使用摄像头扫描二维码
+
+### 扫码格式
+
+系统支持以下 JSON 格式的扫码内容：
 
 ```json
 {
   "action": "add",
   "product_id": "SKU-001",
-  "quantity": 3,
-  "source": "scanner",
-  "raw_code": "{\"product_id\":\"SKU-001\",\"quantity\":3}"
+  "quantity": 5
 }
 ```
 
-### Image Management
+或出库：
 
-- `POST /images`
-- `GET /images/{product_id}`
-- `POST /images/{product_id}/primary`
-- `DELETE /images/{product_id}/{image_id}`
-
-Behavior:
-
-- image files are stored on disk
-- image metadata is stored in SQLite
-- first image becomes primary automatically
-- deleting the primary image promotes the next image if available
-
-### Frontend Console
-
-Available at:
-
-- `GET /`
-
-Current UI supports:
-
-- product lookup
-- standard add/remove stock
-- scan JSON parsing and submission
-- image upload
-- primary image switching
-- image deletion
-- inventory filtering
-- quick product selection from inventory list
-- recent activity view
-- batch scan runner
-- batch result copy
-
-## How To Run
-
-### 1. Install dependencies
-
-```powershell
-& "C:\Users\amwor\AppData\Local\Programs\Python\Python312\python.exe" -m pip install -r "C:\Users\amwor\Documents\codex_pj\warehouse_pj\requirements.txt"
+```json
+{
+  "action": "remove",
+  "product_id": "SKU-001",
+  "quantity": 2
+}
 ```
 
-### 2. Run tests
+### 批量操作
 
-```powershell
-& "C:\Users\amwor\AppData\Local\Programs\Python\Python312\python.exe" -m unittest discover -s "C:\Users\amwor\Documents\codex_pj\warehouse_pj\tests" -v
+在"操作"页面选择"批量"模式，可以粘贴多行 JSON：
+
+```json
+[{"action":"add","product_id":"SKU-001","quantity":5},{"action":"remove","product_id":"SKU-002","quantity":2}]
 ```
 
-### 3. Start the server
+或每行一个对象：
 
-```powershell
-& "C:\Users\amwor\AppData\Local\Programs\Python\Python312\python.exe" -m uvicorn app:app --host 127.0.0.1 --port 8001
+```json
+{"action":"add","product_id":"SKU-001","quantity":5}
+{"action":"remove","product_id":"SKU-002","quantity":2}
 ```
 
-Then open:
+## 设计特点
 
-- [http://127.0.0.1:8001/](http://127.0.0.1:8001/)
-- [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs)
+- **分层架构**：核心业务逻辑与存储、接口层分离
+- **大小写不敏感**：产品 ID 统一转换为大写处理
+- **自动主图**：第一个上传的图片自动设为主图
+- **主图继承**：删除主图时，最早上传的图片自动提升为主图
+- **移动端优先**：UI 设计针对手机浏览器优化
 
-## Test Status
+## 待办事项
 
-Current automated coverage includes:
-
-- in-memory inventory logic
-- SQLite inventory logic
-- FastAPI API flows
-- image management flows
-- aggregate product detail endpoint
-- frontend entrypoint smoke check
-
-Current suite:
-
-- `33` tests passing
-
-## Suggested Demo Flow
-
-If you want to show this project to someone, this flow works well:
-
-1. Open the web UI
-2. Add stock for a new SKU
-3. Upload one or two images
-4. Set one image as primary
-5. Run a batch scan with mixed add/remove lines
-6. Open the product detail view
-7. Copy batch results
-
-That sequence shows inventory, images, aggregate APIs, and the frontend in one short demo.
-
-## Why This Project Structure Works
-
-This project is intentionally not starting with AI features.
-
-That makes the system easier to reason about:
-
-- inventory decisions stay deterministic
-- persistence can be verified independently
-- API behavior is easy to test
-- UI work can move faster on top of stable endpoints
-- future AI recognition can plug into an already-defined input path
-
-## Next Ideas
-
-Good next steps from here:
-
-- polish the README demo screenshots
-- add frontend automated tests
-- add config management for database path and image directory
-- add product deletion or archiving rules
-- add image preview thumbnails in the UI
-- add import/export for inventory snapshots
-- add AI-assisted product recognition as an input helper, not a decision maker
+- [ ] 添加产品删除功能
+- [ ] 添加库存导入/导出
+- [ ] 添加图片缩略图预览
+- [ ] 添加前端自动化测试
+- [ ] 添加配置管理（数据库路径、图片目录等）
+- [ ] 添加 AI 辅助产品识别
