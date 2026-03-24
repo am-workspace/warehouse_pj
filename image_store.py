@@ -87,6 +87,14 @@ class ImageStore:
         if product_dir.exists() and not any(product_dir.iterdir()):
             product_dir.rmdir()
 
+    def save_bytes(self, relative_path: str, content: bytes) -> None:
+        """将字节内容保存到指定路径。"""
+        target_path = self._base_dir / relative_path
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with target_path.open("wb") as f:
+            f.write(content)
+
     @staticmethod
     def _normalize_suffix(upload_filename: str | None) -> str:
         if not upload_filename:

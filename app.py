@@ -180,29 +180,74 @@ def scan_item(payload: ScanPayload) -> ScanResultResponse:
     )
 
 
+# 最大允许上传文件大小：10MB
+MAX_IMAGE_SIZE = 10 * 1024 * 1024
+
+
 @app.post("/images", response_model=ImageResponse)
 async def upload_image(
     product_id: str = Form(...),
     image: UploadFile = File(...),
 ) -> ImageResponse:
+    file_content = None
     try:
-        stored_image = image_store.save(
-            product_id=product_id,
-            upload_filename=image.filename,
-            file_stream=image.file,
-            content_type=image.content_type,
+        # 先读取文件内容到内存，避免在数据库操作前占用文件流
+        file_content = await image.read()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"读取文件失败: {exc}") from exc
+    finally:
+        await image.close()
+
+    if not file_content:
+        raise HTTPException(status_code=400, detail="文件内容为空")
+
+    # 检查文件大小限制
+    if len(file_content) > MAX_IMAGE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"文件大小超过限制，最大允许 {MAX_IMAGE_SIZE // 1024 // 1024}MB"
         )
+
+    # 先生成文件名和路径信息（不实际保存文件）
+    from io import BytesIO
+    from datetime import UTC, datetime
+    from uuid import uuid4
+    from pathlib import Path
+    from product_ids import normalize_product_id
+
+    normalized_product_id = normalize_product_id(product_id)
+    suffix = Path(image.filename or "").suffix.lower() if image.filename else ""
+    if suffix not in {".jpg", ".jpeg", ".png", ".webp"}:
+        raise HTTPException(status_code=400, detail="不支持的图片格式")
+
+    filename = f"{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{uuid4().hex}{suffix}"
+    relative_path = f"{normalized_product_id}/{filename}"
+
+    try:
+        # 先保存元数据到数据库
         image_record = image_metadata_store.add_image(
-            product_id=stored_image.product_id,
-            filename=stored_image.filename,
-            relative_path=stored_image.relative_path,
-            content_type=stored_image.content_type,
-            size_bytes=stored_image.size_bytes,
+            product_id=normalized_product_id,
+            filename=filename,
+            relative_path=relative_path,
+            content_type=image.content_type,
+            size_bytes=len(file_content),
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    finally:
-        await image.close()
+
+    try:
+        # 再保存文件到磁盘
+        image_store.save_bytes(
+            relative_path=relative_path,
+            content=file_content,
+        )
+    except Exception as exc:
+        # 文件保存失败，尝试删除已创建的元数据记录
+        try:
+            image_metadata_store.delete_image(normalized_product_id, image_record.id)
+        except Exception:
+            pass  # 忽略清理失败的错误
+        raise HTTPException(status_code=500, detail=f"保存文件失败: {exc}") from exc
 
     return _to_image_response(image_record)
 

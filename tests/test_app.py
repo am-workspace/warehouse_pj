@@ -33,10 +33,10 @@ class AppTests(unittest.TestCase):
         response = self.client.get("/")
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Mobile WMS Lite", response.text)
-        self.assertIn("Search Product", response.text)
-        self.assertIn("Confirm Submit", response.text)
-        self.assertIn("Upload Image", response.text)
+        self.assertIn("仓库管理系统", response.text)
+        self.assertIn("搜索产品", response.text)
+        self.assertIn("确认提交", response.text)
+        self.assertIn("上传图片", response.text)
 
     def test_add_and_get_item(self) -> None:
         add_response = self.client.post(

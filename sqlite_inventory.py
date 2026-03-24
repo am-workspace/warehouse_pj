@@ -25,19 +25,21 @@ class SQLiteInventory:
         self._validate_quantity(quantity)
 
         with closing(sqlite3.connect(self._db_path)) as connection:
-            current_quantity = self._fetch_quantity(connection, normalized_product_id)
-            new_quantity = current_quantity + quantity
-
-            connection.execute(
+            # 使用数据库级原子加法，避免并发竞争
+            # INSERT 新产品 或 UPDATE 现有产品 quantity = quantity + ?
+            cursor = connection.execute(
                 """
                 INSERT INTO inventory_items (product_id, quantity)
                 VALUES (?, ?)
                 ON CONFLICT(product_id)
-                DO UPDATE SET quantity = excluded.quantity
+                DO UPDATE SET quantity = quantity + excluded.quantity
+                RETURNING quantity
                 """,
-                (normalized_product_id, new_quantity),
+                (normalized_product_id, quantity),
             )
+            row = cursor.fetchone()
             connection.commit()
+            new_quantity = row[0] if row else quantity
 
         return InventoryItem(product_id=normalized_product_id, quantity=new_quantity)
 
@@ -46,10 +48,10 @@ class SQLiteInventory:
         self._validate_quantity(quantity)
 
         with closing(sqlite3.connect(self._db_path)) as connection:
+            # 先检查产品是否存在且库存充足（使用只读查询）
             current_quantity = self._fetch_quantity(connection, normalized_product_id)
             if current_quantity == 0:
                 raise ProductNotFoundError(f"Product '{normalized_product_id}' not found.")
-
             if quantity > current_quantity:
                 raise InsufficientStockError(
                     f"Cannot remove {quantity} units from '{normalized_product_id}'; only {current_quantity} available."
@@ -57,14 +59,16 @@ class SQLiteInventory:
 
             new_quantity = current_quantity - quantity
             if new_quantity == 0:
+                # 库存归零，删除记录
                 connection.execute(
                     "DELETE FROM inventory_items WHERE product_id = ?",
                     (normalized_product_id,),
                 )
             else:
+                # 使用数据库级原子减法（防御性，确保减法准确）
                 connection.execute(
-                    "UPDATE inventory_items SET quantity = ? WHERE product_id = ?",
-                    (new_quantity, normalized_product_id),
+                    "UPDATE inventory_items SET quantity = quantity - ? WHERE product_id = ?",
+                    (quantity, normalized_product_id),
                 )
             connection.commit()
 
